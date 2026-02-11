@@ -211,7 +211,6 @@
 
             // Login
             if (!loggedIn) {
-                const [code, setCode] = [shopId, setShopId];
                 return (
                     <div className="min-h-screen bg-gradient-to-br from-[#3E2723] via-[#5D4037] to-[#4E342E] flex flex-col items-center justify-center p-6 relative overflow-hidden">
                         <div className="absolute top-20 left-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
@@ -220,7 +219,7 @@
                             <div className="flex justify-center mb-4"><div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30"><Store size={32} className="text-white" /></div></div>
                             <h1 className="text-2xl font-bold text-white text-center mb-1">ระบบร้านค้า</h1>
                             <p className="text-amber-200/70 text-center mb-8 text-sm">Horwang School Canteen — Shop Panel</p>
-                            <LoginForm onLogin={n => { setShopId(n); setOrders(getOrders(n)); setLoggedIn(true); }} />
+                            <LoginForm onLogin={n => { setShopId(n); setOrders(getOrders(n)); setMenu(initMenu); setLoggedIn(true); }} />
                         </div>
                         <p className="absolute bottom-6 text-white/30 text-xs">© 2026 Horwang Digital Canteen © ZONY</p>
                     </div>
@@ -254,13 +253,17 @@
                                         <StatCard icon={Utensils} label="เมนูเปิดขาย" value={`${menu.filter(m => m.available).length}/${menu.length}`} color="bg-gradient-to-br from-purple-400 to-purple-600" sub="เมนูที่พร้อมขาย" />
                                     </div>
                                 </div>
-                                {newCount > 0 && <div>
+                                <div>
                                     <div className="flex justify-between items-center mb-3">
-                                        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><Bell size={20} className="text-red-500" />ออเดอร์ใหม่ <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newCount}</span></h3>
-                                        <button onClick={() => { setTab('orders'); setOrderFilter('new'); }} className="text-sm text-[#5D4037] font-medium hover:underline">ดูทั้งหมด</button>
+                                        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><Bell size={20} className="text-red-500" />ออเดอร์ใหม่ {newCount > 0 && <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{newCount}</span>}</h3>
+                                        {newCount > 0 && <button onClick={() => { setTab('orders'); setOrderFilter('new'); }} className="text-sm text-[#5D4037] font-medium hover:underline">ดูทั้งหมด</button>}
                                     </div>
-                                    <div className="space-y-3">{byStatus('new').slice(0, 2).map(o => <OrderCard key={o.id} order={o} onAction={doOrder} />)}</div>
-                                </div>}
+                                    {newCount > 0 ? (
+                                        <div className="space-y-3">{byStatus('new').slice(0, 2).map(o => <OrderCard key={o.id} order={o} onAction={doOrder} />)}</div>
+                                    ) : (
+                                        <div className="bg-white rounded-xl p-6 text-center text-gray-400 text-sm border border-dashed border-gray-200">ไม่มีออเดอร์</div>
+                                    )}
+                                </div>
 
                             </div>
                         )}
@@ -374,9 +377,10 @@
 
         function LoginForm({ onLogin }) {
             const [v, setV] = useState('');
+            const submit = () => { const n = parseInt(v); n >= 1 && n <= 32 ? onLogin(n) : alert('กรุณากรอกเลขร้านค้า 1-32') };
             return <div className="space-y-4">
-                <div className="relative"><Hash className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" /><input type="number" min="1" max="32" placeholder="เลขร้านค้า (1-32)" className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/90 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium" value={v} onChange={e => setV(e.target.value)} /></div>
-                <button onClick={() => { const n = parseInt(v); n >= 1 && n <= 32 ? onLogin(n) : alert('กรุณากรอกเลขร้านค้า 1-32') }} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold hover:from-amber-600 hover:to-amber-700 active:scale-[0.98] shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2">เข้าสู่ระบบ <ChevronRight size={20} /></button>
+                <div className="relative"><Hash className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" /><input type="number" min="1" max="32" placeholder="เลขร้านค้า (1-32)" className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/90 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium" value={v} onChange={e => setV(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} /></div>
+                <button onClick={submit} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold hover:from-amber-600 hover:to-amber-700 active:scale-[0.98] shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2">เข้าสู่ระบบ <ChevronRight size={20} /></button>
             </div>;
         }
 
