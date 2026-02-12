@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horwang School Canteen</title>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fix for Lucide React UMD expecting lowercase 'react' -->
+    <script>
+        window.react = window.React;
+        window.reactDOM = window.ReactDOM;
+    </script>
+
+    <!-- Lucide Icons React UMD -->
+    <script src="https://unpkg.com/lucide-react@0.292.0/dist/umd/lucide-react.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        #debug-info {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 5px;
+            font-size: 10px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+
+    <div id="root"></div>
+    <div id="debug-info">Status: Loading...</div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- Safe Icon Handling ---
+        const SafeIcon = ({ name, ...props }) => {
+            return <span {...props} title={name} style={{ display: 'inline-block', width: '20px', height: '20px', background: '#ccc', borderRadius: '4px', textAlign: 'center', lineHeight: '20px', fontSize: '10px' }}>?</span>;
+        };
+
+        let Icons = {};
+        const iconNames = ['Search', 'ShoppingCart', 'User', 'Home', 'ArrowLeft', 'Star', 'Clock', 'CreditCard', 'ChevronRight', 'MapPin', 'Utensils'];
+
+        if (typeof LucideReact !== 'undefined') {
+            Icons = LucideReact;
+            document.getElementById('debug-info').innerText = 'Status: Icons Loaded';
+        } else {
+            iconNames.forEach(name => {
+                Icons[name] = (props) => <SafeIcon name={name} {...props} />;
+            });
+        }
+
+        const { Search, ShoppingCart, User, Home, ArrowLeft, Star, Clock, CreditCard, ChevronRight, MapPin, Utensils } = Icons;
+
+
+        // --- ข้อมูลจำลอง (Mock Data) ---
+        const categories = [
+            { id: 'rice', name: 'ข้าวแกง/ตามสั่ง', icon: '🍚' },
+            { id: 'noodle', name: 'ก๋วยเตี๋ยว', icon: '🍜' },
+            { id: 'snack', name: 'ของทานเล่น', icon: '🍡' },
+            { id: 'drink', name: 'เครื่องดื่ม', icon: '🥤' },
+            { id: 'fruit', name: 'ผลไม้', icon: '🍉' },
+            { id: 'halal', name: 'อาหารฮาลาล', icon: '🕌' },
+        ];
+
+        const allShops = [
+            { id: 1, name: 'ร้านน้ำสวัสดิการ', category: 'drink', image: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 2, menu: [{ id: 101, name: 'น้ำเปล่า', price: 7, image: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&q=80&w=300' }, { id: 102, name: 'น้ำแร่มินเนเร่', price: 10, image: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 2, name: 'มาลี ก๋วยเตี๋ยวไก่', category: 'noodle', image: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=300', rating: 4.5, queue: 5, menu: [{ id: 201, name: 'ก๋วยเตี๋ยวไก่เส้นบะหมี่', price: 40, image: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=300' }, { id: 202, name: 'เส้นเล็กไก่ฉีก', price: 40, image: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 3, name: 'ก๋วยเตี๋ยวต้มยำ', category: 'noodle', image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 6, menu: [{ id: 301, name: 'เส้นเล็กต้มยำ', price: 40, image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300' }, { id: 302, name: 'บะหมี่ต้มยำทะเล', price: 50, image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 4, name: 'พระข้าวราดแกง', category: 'rice', image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=300', rating: 4.3, queue: 3, menu: [{ id: 401, name: 'ข้าวราดแกง 2 อย่าง', price: 35, image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=300' }, { id: 402, name: 'ข้าวพะแนงหมู', price: 40, image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 5, name: 'ข้าวราดแกง', category: 'rice', image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300', rating: 4.2, queue: 4, menu: [{ id: 501, name: 'ข้าวแกงเขียวหวาน', price: 35, image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300' }, { id: 502, name: 'ข้าวไข่พะโล้', price: 35, image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 6, name: 'พรผลไม้', category: 'fruit', image: 'https://images.unsplash.com/photo-1502741224143-90386d7f8c82?auto=format&fit=crop&q=80&w=300', rating: 4.9, queue: 1, menu: [{ id: 601, name: 'แตงโม', price: 20, image: 'https://images.unsplash.com/photo-1589363560237-7dfc06db1f8d?auto=format&fit=crop&q=80&w=300' }, { id: 602, name: 'สัปปะรด', price: 20, image: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?auto=format&fit=crop&q=80&w=300' }, { id: 603, name: 'มะม่วง', price: 25, image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 7, name: 'สุกี้ - ราดหน้า', category: 'rice', image: 'https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 7, menu: [{ id: 701, name: 'สุกี้น้ำรวมมิตร', price: 45, image: 'https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&q=80&w=300' }, { id: 702, name: 'ราดหน้าหมูหมัก', price: 40, image: 'https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 8, name: 'นันทวรรณก๋วยเตี๋ยวเรือ', category: 'noodle', image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 8, menu: [{ id: 801, name: 'ก๋วยเตี๋ยวเรือหมู', price: 40, image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300' }, { id: 802, name: 'ก๋วยเตี๋ยวเรือเนื้อ', price: 50, image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300' }, { id: 803, name: 'เกาเหลาหมู', price: 50, image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 9, name: 'โฉมยง ขนมหวาน', category: 'snack', image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 2, menu: [{ id: 901, name: 'น้ำแข็งไส', price: 20, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300' }, { id: 902, name: 'ลอดช่องน้ำกะทิ', price: 25, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 10, name: 'อารีนัน ก๋วยเตี๋ยวต้มยำ', category: 'noodle', image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 5, menu: [{ id: 1001, name: 'ต้มยำน้ำข้น', price: 45, image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300' }, { id: 1002, name: 'ต้มยำน้ำใส', price: 40, image: 'https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 11, name: 'ก๋วยเตี๋ยวหมูละมุน', category: 'noodle', image: 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&q=80&w=300', rating: 4.5, queue: 4, menu: [{ id: 1101, name: 'ก๋วยเตี๋ยวหมูต้มยำ', price: 40, image: 'https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 12, name: 'ข้าวมันไก่ป้าติ๋ม', category: 'rice', image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 9, menu: [{ id: 1201, name: 'ข้าวมันไก่ต้ม', price: 40, image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300' }, { id: 1202, name: 'ข้าวมันไก่ทอด', price: 45, image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 13, name: 'ชุติมา อาหารตามสั่ง', category: 'rice', image: 'https://images.unsplash.com/photo-1626804475297-411d6c2912a7?auto=format&fit=crop&q=80&w=300', rating: 4.4, queue: 6, menu: [{ id: 1301, name: 'ข้าวกะเพราหมูสับ', price: 40, image: 'https://images.unsplash.com/photo-1626804475297-411d6c2912a7?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 14, name: 'ฐิตืพงศ์ ก๋วยจั๊บ', category: 'noodle', image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 5, menu: [{ id: 1401, name: 'ก๋วยจั๊บน้ำข้น', price: 40, image: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 15, name: 'ป้าอัจ ก๋วยเตี๋ยวหมูเด้ง', category: 'noodle', image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 7, menu: [{ id: 1501, name: 'เส้นเล็กหมูเด้ง', price: 40, image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300' }, { id: 1502, name: 'บะหมี่หมูแดง หมูกรอบ', price: 45, image: 'https://images.unsplash.com/photo-1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 16, name: 'จุ้บแจง อาหารตามสั่ง', category: 'rice', image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300', rating: 4.5, queue: 5, menu: [{ id: 1601, name: 'ข้าวผัดต้มยำแห้ง', price: 45, image: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 17, name: 'หอยทอดฮ่องกง', category: 'rice', image: 'https://images.unsplash.com/photo-1616766440268-23c317b9b1ee?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 8, menu: [{ id: 1701, name: 'หอยทอด', price: 50, image: 'https://images.unsplash.com/photo-1616766440268-23c317b9b1ee?auto=format&fit=crop&q=80&w=300' }, { id: 1702, name: 'ออส่วน', price: 60, image: 'https://images.unsplash.com/photo-1616766440268-23c317b9b1ee?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 18, name: 'ปูเปรี้ยวส้มตำ', category: 'rice', image: 'https://images.unsplash.com/photo-1549405678-0158ed63bfdb?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 6, menu: [{ id: 1801, name: 'ส้มตำไทย', price: 35, image: 'https://images.unsplash.com/photo-1549405678-0158ed63bfdb?auto=format&fit=crop&q=80&w=300' }, { id: 1802, name: 'ไก่ย่าง', price: 40, image: 'https://images.unsplash.com/photo-1549405678-0158ed63bfdb?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 19, name: 'เบเกอรี่ ปังปัง', category: 'snack', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 3, menu: [{ id: 1901, name: 'แซนวิช', price: 25, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=300' }, { id: 1902, name: 'ขนมปังเนยสด', price: 20, image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 20, name: 'Juicy Delight', category: 'drink', image: 'https://images.unsplash.com/photo-1623594206637-a1288b22589e?auto=format&fit=crop&q=80&w=300', rating: 4.9, queue: 4, menu: [{ id: 2001, name: 'น้ำผลไม้ปั่น', price: 30, image: 'https://images.unsplash.com/photo-1623594206637-a1288b22589e?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 21, name: 'หมูทอดทงคัตสึไฮคิว', category: 'rice', image: 'https://images.unsplash.com/photo-1604655469446-f95213608107?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 8, menu: [{ id: 2101, name: 'ข้าวหน้าหมูทอดทงคัตสึ', price: 50, image: 'https://images.unsplash.com/photo-1604655469446-f95213608107?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 22, name: 'ข้าวไข่เจียวบุฟเฟ่ต์', category: 'rice', image: 'https://images.unsplash.com/photo-1626082956903-87a170889985?auto=format&fit=crop&q=80&w=300', rating: 4.5, queue: 7, menu: [{ id: 2201, name: 'ข้าวไข่เจียวทรงเครื่อง', price: 30, image: 'https://images.unsplash.com/photo-1626082956903-87a170889985?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 23, name: 'กินข้าวแกง by พี่ก้อย', category: 'rice', image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=300', rating: 4.3, queue: 4, menu: [{ id: 2301, name: 'ข้าวราดแกงปักษ์ใต้', price: 35, image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 24, name: 'อาหารนานาชาติ', category: 'rice', image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 5, menu: [{ id: 2401, name: 'สปาเก็ตตี้', price: 45, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 25, name: 'คอนร์ด็อก', category: 'snack', image: 'https://images.unsplash.com/photo-1620052581237-5d36667be337?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 6, menu: [{ id: 2501, name: 'คอร์นด็อกชีส', price: 35, image: 'https://images.unsplash.com/photo-1620052581237-5d36667be337?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 26, name: 'กัสโมส ข้าวไก่อบ ไก่ราซอส', category: 'rice', image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300', rating: 4.5, queue: 6, menu: [{ id: 2601, name: 'ข้าวไก่อบ', price: 45, image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300' }, { id: 2602, name: 'ข้าวไก่ราซอส', price: 45, image: 'https://images.unsplash.com/photo-1606850875326-1736b51829e1?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 27, name: 'ลูกชิ้นอร่อยจัง', category: 'snack', image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 3, menu: [{ id: 2701, name: 'ลูกชิ้นปิ้ง', price: 10, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300' }, { id: 2702, name: 'ลูกชิ้นทอด', price: 10, image: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 28, name: 'ธนะสิทธ์ โจ๊ก ข้าวต้ม ต้มเลือดหมู', category: 'rice', image: 'https://images.unsplash.com/photo-1512485800893-b08ec1ea59b1?auto=format&fit=crop&q=80&w=300', rating: 4.6, queue: 5, menu: [{ id: 2801, name: 'โจ๊กหมู', price: 35, image: 'https://images.unsplash.com/photo-1512485800893-b08ec1ea59b1?auto=format&fit=crop&q=80&w=300' }, { id: 2802, name: 'ต้มเลือดหมู', price: 40, image: 'https://images.unsplash.com/photo-1512485800893-b08ec1ea59b1?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 29, name: 'อุษา ข้าวขาหมู ข้าวหมูแดง', category: 'rice', image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&q=80&w=300', rating: 4.7, queue: 7, menu: [{ id: 2901, name: 'ข้าวขาหมู', price: 50, image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&q=80&w=300' }, { id: 2902, name: 'ข้าวหมูแดงหมูกรอบ', price: 50, image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 30, name: 'นิจวิภา ไอศกรีม', category: 'snack', image: 'https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&q=80&w=300', rating: 4.9, queue: 4, menu: [{ id: 3001, name: 'ไอศกรีมกะทิ', price: 20, image: 'https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 31, name: 'ฟุตบอลไข่ข้น', category: 'rice', image: 'https://images.unsplash.com/photo-1585501865882-628d689655f0?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 6, menu: [{ id: 3101, name: 'ข้าวไข่ข้น', price: 40, image: 'https://images.unsplash.com/photo-1585501865882-628d689655f0?auto=format&fit=crop&q=80&w=300' }] },
+            { id: 32, name: 'ไก่ย่างห้าดาว', category: 'snack', image: 'https://images.unsplash.com/photo-1626082956903-87a170889985?auto=format&fit=crop&q=80&w=300', rating: 4.8, queue: 6, menu: [{ id: 3201, name: 'ไก่ย่าง', price: 25, image: 'https://images.unsplash.com/photo-1626082956903-87a170889985?auto=format&fit=crop&q=80&w=300' }, { id: 3202, name: 'ไก่จ๊อ', price: 25, image: 'https://images.unsplash.com/photo-1626082956903-87a170889985?auto=format&fit=crop&q=80&w=300' }] }
+        ];
+
+        // --- Components ---
+        const Button = ({ children, onClick, className, variant = 'primary', ...props }) => {
+            const baseStyle = "px-4 py-3 rounded-xl font-medium transition-all active:scale-95 shadow-sm";
+            const variants = {
+                primary: "bg-[#5D4037] text-amber-400 hover:bg-[#4E342E]",
+                secondary: "bg-amber-100 text-[#5D4037] hover:bg-amber-200",
+                outline: "border-2 border-[#5D4037] text-[#5D4037] bg-transparent",
+                danger: "bg-red-500 text-white hover:bg-red-600"
+            };
+            return (
+                <button className={`${baseStyle} ${variants[variant]} ${className}`} onClick={onClick} {...props}>
+                    {children}
+                </button>
+            );
+        };
+
+        // --- หน้า Login ---
+        const LoginScreen = ({ onLogin }) => {
+            const [studentId, setStudentId] = useState('');
+
+            return (
+                <div className="min-h-screen bg-gradient-to-b from-[#5D4037] to-[#3E2723] flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
+                    <div className="absolute top-[-50px] left-[-50px] w-40 h-40 bg-amber-500/20 rounded-full blur-2xl"></div>
+                    <div className="absolute bottom-[-50px] right-[-50px] w-60 h-60 bg-amber-500/10 rounded-full blur-3xl"></div>
+
+                    <div className="bg-white/10 backdrop-blur-md p-8 rounded-3xl border border-white/20 w-full max-w-sm shadow-2xl relative z-10">
+                        <div className="flex justify-center mb-6">
+                            <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-600 rounded-3xl flex items-center justify-center shadow-lg">
+                                <Utensils size={40} className="text-white" />
+                            </div>
+                        </div>
+
+                        <h1 className="text-2xl font-bold text-white mb-1">Canteen Hub</h1>
+                        <p className="text-amber-200 mb-8 text-sm">Horwang Digital Canteen</p>
+
+                        <div className="space-y-4">
+                            <div className="relative">
+                                <User className="absolute left-4 top-3.5 text-gray-400 w-5 h-5" />
+                                <input
+                                    type="text"
+                                    placeholder="รหัสนักเรียน 5 หลัก"
+                                    className="w-full pl-12 pr-4 py-3 rounded-xl bg-white/90 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-400 font-medium tracking-wide"
+                                    value={studentId}
+                                    onChange={(e) => setStudentId(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                                />
+                            </div>
+                            <Button
+                                onClick={() => studentId.length === 5 ? onLogin(studentId) : alert('กรุณากรอกรหัสนักเรียน 5 หลัก')}
+                                className="w-full flex items-center justify-center gap-2 shadow-lg hover:shadow-amber-500/20"
+                            >
+                                เข้าสู่ระบบ
+                                <ChevronRight size={20} />
+                            </Button>
+                        </div>
+                    </div>
+                    <p className="absolute bottom-6 text-white/40 text-xs">© 2026 Horwang School Canteen</p>
+                </div>
+            );
+        };
+
+        // --- Main App ---
+        function App() {
+            const [isLoggedIn, setIsLoggedIn] = useState(false);
+            const [user, setUser] = useState(null);
+            const [activeTab, setActiveTab] = useState('home');
+            const [selectedShop, setSelectedShop] = useState(null);
+            const [cart, setCart] = useState([]);
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedCategory, setSelectedCategory] = useState('all');
+
+            const handleLogin = (id) => {
+                setUser({ id, name: 'เด็กชายหอวัง รักเรียน', balance: 120 });
+                setIsLoggedIn(true);
+            };
+
+            const addToCart = (item, shop) => {
+                setCart(prev => {
+                    const existing = prev.find(i => i.id === item.id);
+                    if (existing) {
+                        return prev.map(i => i.id === item.id ? { ...i, qty: i.qty + 1 } : i);
+                    }
+                    return [...prev, { ...item, qty: 1, shopName: shop.name, shopId: shop.id }];
+                });
+            };
+
+            const removeFromCart = (itemId) => {
+                setCart(prev => prev.filter(i => i.id !== itemId));
+            };
+
+            const updateQty = (itemId, change) => {
+                setCart(prev => prev.map(i => {
+                    if (i.id === itemId) return { ...i, qty: Math.max(1, i.qty + change) };
+                    return i;
+                }));
+            };
+
+            const placeOrder = () => {
+                const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+                if (user.balance < total) return alert('ยอดเงินคงเหลือไม่เพียงพอ');
+
+                // Group items by shop for real-time sync
+                const ordersByShop = {};
+                cart.forEach(item => {
+                    if (!ordersByShop[item.shopId]) {
+                        ordersByShop[item.shopId] = {
+                            id: 'A-' + Math.floor(Math.random() * 900 + 100),
+                            studentName: user.name,
+                            items: [],
+                            total: 0,
+                            status: 'new',
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            note: '',
+                            shopId: item.shopId
+                        };
+                    }
+                    ordersByShop[item.shopId].items.push({ name: item.name, qty: item.qty, price: item.price });
+                    ordersByShop[item.shopId].total += item.price * item.qty;
+                });
+
+                // Get existing orders from localStorage
+                const allOrders = JSON.parse(localStorage.getItem('horwang_orders') || '[]');
+                const newOrdersList = [...allOrders, ...Object.values(ordersByShop)];
+
+                // Save back to localStorage
+                localStorage.setItem('horwang_orders', JSON.stringify(newOrdersList));
+
+                // Alert and clear cart
+                alert(`สั่งซื้อสำเร็จ! บรรจุคิวเรียบร้อยแล้ว\nยอดคงเหลือ: ฿${user.balance - total}`);
+                setUser({ ...user, balance: user.balance - total });
+                setCart([]);
+                setActiveTab('home');
+            };
+
+            const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
+            const filteredShops = allShops.filter(shop => {
+                const matchesSearch = shop.name.includes(searchTerm);
+                const matchesCategory = selectedCategory === 'all' || shop.category === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            if (!isLoggedIn) return <LoginScreen onLogin={handleLogin} />;
+
+            return (
+                <div className="bg-gray-50 min-h-screen pb-20 max-w-md mx-auto relative shadow-2xl overflow-hidden">
+                    <header className="bg-[#5D4037] text-white p-4 sticky top-0 z-20 shadow-md rounded-b-2xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center border border-white/20 shadow-inner">
+                                    <Utensils size={20} className="text-white" />
+                                </div>
+                                <div>
+                                    <h2 className="font-bold text-lg leading-tight">{user.name}</h2>
+                                    <div className="flex items-center gap-1 text-xs text-amber-300">
+                                        <CreditCard size={12} />
+                                        <span>฿{user.balance.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="relative cursor-pointer" onClick={() => { setActiveTab('cart'); setSelectedShop(null); }}>
+                                <ShoppingCart className="text-white w-6 h-6" />
+                                {cartCount > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold border-2 border-[#5D4037]">
+                                        {cartCount}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {activeTab === 'home' && !selectedShop && (
+                            <div className="relative">
+                                <Search className="absolute left-3 top-2.5 text-gray-400 w-4 h-4 z-10" />
+                                <input
+                                    type="text"
+                                    placeholder="ค้นหาร้านอาหาร..."
+                                    className="w-full pl-10 pr-4 py-2 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        )}
+                    </header>
+
+                    <main className="p-4">
+                        {activeTab === 'home' && !selectedShop && (
+                            <>
+                                <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide mb-2">
+                                    <button
+                                        onClick={() => setSelectedCategory('all')}
+                                        className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedCategory === 'all' ? 'bg-[#5D4037] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
+                                    >
+                                        ทั้งหมด
+                                    </button>
+                                    {categories.map(cat => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setSelectedCategory(cat.id)}
+                                            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap ${selectedCategory === cat.id ? 'bg-[#5D4037] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}
+                                        >
+                                            {cat.icon} {cat.name}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    {filteredShops.length > 0 ? (
+                                        filteredShops.map(shop => (
+                                            <div
+                                                key={shop.id}
+                                                onClick={() => setSelectedShop(shop)}
+                                                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden cursor-pointer group"
+                                            >
+                                                <div className="h-32 overflow-hidden relative">
+                                                    <img src={shop.image} alt={shop.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                                    <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-600 flex items-center gap-1 shadow-sm">
+                                                        <Star size={10} fill="currentColor" /> {shop.rating}
+                                                    </div>
+                                                </div>
+                                                <div className="p-3">
+                                                    <h3 className="font-bold text-gray-800 text-sm truncate">{shop.name}</h3>
+                                                    <div className="flex justify-between items-center mt-2">
+                                                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                                                            <Clock size={10} /> {shop.queue} คิว
+                                                        </span>
+                                                        <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full truncate">
+                                                            {categories.find(c => c.id === shop.category)?.name}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 py-20 text-center text-gray-400">
+                                            <Search size={48} className="mx-auto mb-4 opacity-20" />
+                                            <p>ไม่พบร้านค้าที่คุณกำลังมองหา</p>
+                                            <button
+                                                onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }}
+                                                className="mt-4 text-[#5D4037] font-bold underline"
+                                            >
+                                                แสดงร้านค้าทั้งหมด
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        {selectedShop && activeTab === 'home' && (
+                            <div className="animate-fade-in">
+                                <button
+                                    onClick={() => setSelectedShop(null)}
+                                    className="mb-4 flex items-center text-sm font-medium text-gray-600 hover:text-[#5D4037]"
+                                >
+                                    <ArrowLeft size={16} className="mr-1" /> กลับ
+                                </button>
+
+                                <div className="bg-white rounded-2xl p-4 shadow-sm mb-6 flex items-start gap-4 border border-gray-100">
+                                    <img src={selectedShop.image} className="w-20 h-20 rounded-xl object-cover" alt="" />
+                                    <div>
+                                        <h2 className="text-xl font-bold text-[#5D4037]">{selectedShop.name}</h2>
+                                        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                                            <Star size={14} className="text-amber-400 fill-amber-400" />
+                                            <span>{selectedShop.rating}</span>
+                                            <span className="text-gray-300">|</span>
+                                            <Clock size={14} />
+                                            <span>~{selectedShop.queue * 2} นาที</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <h3 className="font-bold text-lg mb-3">รายการอาหาร</h3>
+                                <div className="space-y-3">
+                                    {selectedShop.menu.map(item => (
+                                        <div key={item.id} className="bg-white p-3 rounded-xl shadow-sm flex gap-3 border border-gray-50">
+                                            <img src={item.image} className="w-24 h-24 rounded-lg object-cover bg-gray-100" alt="" />
+                                            <div className="flex-1 flex flex-col justify-between py-1">
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800 text-sm">{item.name}</h4>
+                                                    <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">{selectedShop.category}</p>
+                                                </div>
+                                                <div className="flex justify-between items-end">
+                                                    <span className="font-bold text-[#5D4037] text-base">฿{item.price}</span>
+                                                    <button
+                                                        onClick={() => addToCart(item, selectedShop)}
+                                                        className="bg-amber-100 text-[#5D4037] px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200 transition-colors"
+                                                    >
+                                                        + เพิ่ม
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'cart' && (
+                            <div className="animate-fade-in">
+                                <h2 className="text-2xl font-bold text-[#5D4037] mb-6 flex items-center gap-2">
+                                    <ShoppingCart className="fill-[#5D4037]" /> ตะกร้าของฉัน
+                                </h2>
+
+                                {cart.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                                        <Utensils size={48} className="mb-4 opacity-20" />
+                                        <p>ตะกร้าว่างเปล่า</p>
+                                        <button onClick={() => setActiveTab('home')} className="mt-4 text-[#5D4037] font-medium text-sm underline">
+                                            ไปเลือกซื้ออาหาร
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-4 mb-32">
+                                            {cart.map(item => (
+                                                <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm flex items-center justify-between border border-gray-100">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden">
+                                                            <img src={item.image} className="w-full h-full object-cover" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-sm text-gray-800 truncate w-32">{item.name}</h4>
+                                                            <p className="text-[10px] text-gray-400 mb-1">{item.shopName}</p>
+                                                            <p className="text-[#5D4037] font-bold text-sm">฿{item.price}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1">
+                                                        <button onClick={() => item.qty > 1 ? updateQty(item.id, -1) : removeFromCart(item.id)} className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-gray-600 text-xs">-</button>
+                                                        <span className="font-bold text-xs w-4 text-center">{item.qty}</span>
+                                                        <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 flex items-center justify-center bg-[#5D4037] text-white rounded shadow-sm text-xs">+</button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="fixed bottom-16 left-0 right-0 p-4 bg-white border-t border-gray-100 shadow-2xl rounded-t-3xl max-w-md mx-auto z-40">
+                                            <div className="flex justify-between items-center mb-4 px-2">
+                                                <span className="text-gray-500 font-medium">รวมทั้งหมด</span>
+                                                <span className="text-2xl font-bold text-[#5D4037]">฿{cartTotal}</span>
+                                            </div>
+                                            <Button className="w-full py-4 text-lg" onClick={placeOrder}>
+                                                ยืนยันการสั่งซื้อ
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </main>
+
+                    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-3 px-8 flex justify-between items-center z-50 max-w-md mx-auto text-[10px] font-bold text-gray-400">
+                        <button
+                            onClick={() => { setActiveTab('home'); setSelectedShop(null); }}
+                            className={`flex flex-col items-center gap-1 ${activeTab === 'home' ? 'text-[#5D4037]' : ''}`}
+                        >
+                            <Home size={22} strokeWidth={activeTab === 'home' ? 3 : 2} />
+                            หน้าแรก
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('cart'); setSelectedShop(null); }}
+                            className={`flex flex-col items-center gap-1 relative ${activeTab === 'cart' ? 'text-[#5D4037]' : ''}`}
+                        >
+                            <div className="relative">
+                                <ShoppingCart size={22} strokeWidth={activeTab === 'cart' ? 3 : 2} />
+                                {cartCount > 0 && <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] text-white">{cartCount}</span>}
+                            </div>
+                            ตะกร้า
+                        </button>
+                        <button className="flex flex-col items-center gap-1">
+                            <User size={22} />
+                            โปรไฟล์
+                        </button>
+                    </nav>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>
