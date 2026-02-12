@@ -100,17 +100,48 @@
         const icon = name => I[name] || (p => <span style={{ display: 'inline-block', width: 20, height: 20, background: '#ccc', borderRadius: 4, textAlign: 'center', lineHeight: '20px', fontSize: 10 }}>?</span>);
         const [Store, Hash, ChevronRight, Bell, LogOut, Home, ClipboardList, Utensils, BarChart3, DollarSign, ShoppingBag, Clock, AlertCircle, ChefHat, XCircle, CheckCircle, Package, TrendingUp, Plus, X, Save, Eye, EyeOff, Edit3, Trash2] = ['Store', 'Hash', 'ChevronRight', 'Bell', 'LogOut', 'Home', 'ClipboardList', 'Utensils', 'BarChart3', 'DollarSign', 'ShoppingBag', 'Clock', 'AlertCircle', 'ChefHat', 'XCircle', 'CheckCircle', 'Package', 'TrendingUp', 'Plus', 'X', 'Save', 'Eye', 'EyeOff', 'Edit3', 'Trash2'].map(icon);
 
-        const shopNames = { 1: 'ร้านน้ำสวัสดิการ', 2: 'มาลี ก๋วยเตี๋ยวไก่', 3: 'ก๋วยเตี๋ยวต้มยำ', 4: 'พระข้าวราดแกง', 5: 'ข้าวราดแกง', 6: 'พรผลไม้', 7: 'สุกี้ - ราดหน้า', 8: 'นันทวรรณก๋วยเตี๋ยวเรือ', 9: 'โฉมยง ขนมหวาน', 10: 'อารีนัน ก๋วยเตี๋ยวต้มยำ', 11: 'ก๋วยเตี๋ยวหมูละมุน', 12: 'ข้าวมันไก่ป้าติ๋ม', 13: 'ชุติมา อาหารตามสั่ง', 14: 'ฐิตืพงศ์ ก๋วยจั๊บ', 15: 'ป้าอัจ ก๋วยเตี๋ยวหมูเด้ง', 16: 'จุ้บแจง อาหารตามสั่ง', 17: 'หอยทอดฮ่องกง', 18: 'ปูเปรี้ยวส้มตำ', 19: 'เบเกอรี่ ปังปัง', 20: 'Juicy Delight', 21: 'หมูทอดทงคัตสึไฮคิว', 22: 'ข้าวไข่เจียวบุฟเฟ่ต์', 23: 'กินข้าวแกง by พี่ก้อย', 24: 'อาหารนานาชาติ', 25: 'คอนร์ด็อก', 26: 'กัสโมส ข้าวไก่อบ ไก่ราซอส', 27: 'ลูกชิ้นอร่อยจัง', 28: 'ธนะสิทธ์ โจ๊ก ข้าวต้ม ต้มเลือดหมู', 29: 'อุษา ข้าวขาหมู ข้าวหมูแดง', 30: 'นิจวิภา ไอศกรีม', 31: 'ฟุตบอลไข่ข้น', 32: 'ไก่ย่างห้าดาว' };
-
-        const IMG = 'https://images.unsplash.com/photo-';
-        const initMenu = [
-            { id: 1, name: 'ก๋วยเตี๋ยวเรือหมู', price: 40, image: IMG + '1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300', available: true, sold: 45 },
-            { id: 2, name: 'ก๋วยเตี๋ยวเรือเนื้อ', price: 50, image: IMG + '1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300', available: true, sold: 32 },
-            { id: 3, name: 'เกาเหลาหมู', price: 50, image: IMG + '1552611052-33e04de081de?auto=format&fit=crop&q=80&w=300', available: true, sold: 28 },
-            { id: 4, name: 'เส้นเล็กต้มยำ', price: 40, image: IMG + '1569562211093-4ed0d0758f12?auto=format&fit=crop&q=80&w=300', available: false, sold: 15 },
-            { id: 5, name: 'บะหมี่แห้งหมูแดง', price: 45, image: IMG + '1617093727343-374698b1b08d?auto=format&fit=crop&q=80&w=300', available: true, sold: 38 },
+        const SHOPS_DATA = [
+            { id: 1, name: 'ร้านน้ำสวัสดิการ', category: 'drink', menu: [{ name: 'น้ำเปล่า', price: 7 }, { name: 'น้ำแร่มินเนเร่', price: 10 }] },
+            { id: 2, name: 'มาลี ก๋วยเตี๋ยวไก่', category: 'noodle', menu: [{ name: 'ก๋วยเตี๋ยวไก่เส้นบะหมี่', price: 40 }, { name: 'เส้นเล็กไก่ฉีก', price: 40 }] },
+            { id: 3, name: 'ก๋วยเตี๋ยวต้มยำ', category: 'noodle', menu: [{ name: 'เส้นเล็กต้มยำ', price: 40 }, { name: 'บะหมี่ต้มยำทะเล', price: 50 }] },
+            { id: 4, name: 'พระข้าวราดแกง', category: 'rice', menu: [{ name: 'ข้าวราดแกง 2 อย่าง', price: 35 }, { name: 'ข้าวพะแนงหมู', price: 40 }] },
+            { id: 5, name: 'ข้าวราดแกง', category: 'rice', menu: [{ name: 'ข้าวแกงเขียวหวาน', price: 35 }, { name: 'ข้าวไข่พะโล้', price: 35 }] },
+            { id: 6, name: 'พรผลไม้', category: 'fruit', menu: [{ name: 'แตงโม', price: 20 }, { name: 'สัปปะรด', price: 20 }, { name: 'มะม่วง', price: 25 }] },
+            { id: 7, name: 'สุกี้ - ราดหน้า', category: 'rice', menu: [{ name: 'สุกี้น้ำรวมมิตร', price: 45 }, { name: 'ราดหน้าหมูหมัก', price: 40 }] },
+            { id: 8, name: 'นันทวรรณก๋วยเตี๋ยวเรือ', category: 'noodle', menu: [{ name: 'ก๋วยเตี๋ยวเรือหมู', price: 40 }, { name: 'ก๋วยเตี๋ยวเรือเนื้อ', price: 50 }, { name: 'เกาเหลาหมู', price: 50 }] },
+            { id: 9, name: 'โฉมยง ขนมหวาน', category: 'snack', menu: [{ name: 'น้ำแข็งไส', price: 20 }, { name: 'ลอดช่องน้ำกะทิ', price: 25 }] },
+            { id: 10, name: 'อารีนัน ก๋วยเตี๋ยวต้มยำ', category: 'noodle', menu: [{ name: 'ต้มยำน้ำข้น', price: 45 }, { name: 'ต้มยำน้ำใส', price: 40 }] },
+            { id: 11, name: 'ก๋วยเตี๋ยวหมูละมุน', category: 'noodle', menu: [{ name: 'ก๋วยเตี๋ยวหมูต้มยำ', price: 40 }] },
+            { id: 12, name: 'ข้าวมันไก่ป้าติ๋ม', category: 'rice', menu: [{ name: 'ข้าวมันไก่ต้ม', price: 40 }, { name: 'ข้าวมันไก่ทอด', price: 45 }] },
+            { id: 13, name: 'ชุติมา อาหารตามสั่ง', category: 'rice', menu: [{ name: 'ข้าวกะเพราหมูสับ', price: 40 }] },
+            { id: 14, name: 'ฐิตืพงศ์ ก๋วยจั๊บ', category: 'noodle', menu: [{ name: 'ก๋วยจั๊บน้ำข้น', price: 40 }] },
+            { id: 15, name: 'ป้าอัจ ก๋วยเตี๋ยวหมูเด้ง', category: 'noodle', menu: [{ name: 'เส้นเล็กหมูเด้ง', price: 40 }, { name: 'บะหมี่หมูแดง หมูกรอบ', price: 45 }] },
+            { id: 16, name: 'จุ้บแจง อาหารตามสั่ง', category: 'rice', menu: [{ name: 'ข้าวผัดต้มยำแห้ง', price: 45 }] },
+            { id: 17, name: 'หอยทอดฮ่องกง', category: 'rice', menu: [{ name: 'หอยทอด', price: 50 }, { name: 'ออส่วน', price: 60 }] },
+            { id: 18, name: 'ปูเปรี้ยวส้มตำ', category: 'rice', menu: [{ name: 'ส้มตำไทย', price: 35 }, { name: 'ไก่ย่าง', price: 40 }] },
+            { id: 19, name: 'เบเกอรี่ ปังปัง', category: 'snack', menu: [{ name: 'แซนวิช', price: 25 }, { name: 'ขนมปังเนยสด', price: 20 }] },
+            { id: 20, name: 'Juicy Delight', category: 'drink', menu: [{ name: 'น้ำผลไม้ปั่น', price: 30 }] },
+            { id: 21, name: 'หมูทอดทงคัตสึไฮคิว', category: 'rice', menu: [{ name: 'ข้าวหน้าหมูทอดทงคัตสึ', price: 50 }] },
+            { id: 22, name: 'ข้าวไข่เจียวบุฟเฟ่ต์', category: 'rice', menu: [{ name: 'ข้าวไข่เจียวทรงเครื่อง', price: 30 }] },
+            { id: 23, name: 'กินข้าวแกง by พี่ก้อย', category: 'rice', menu: [{ name: 'ข้าวราดแกงปักษ์ใต้', price: 35 }] },
+            { id: 24, name: 'อาหารนานาชาติ', category: 'rice', menu: [{ name: 'สปาเก็ตตี้', price: 45 }] },
+            { id: 25, name: 'คอนร์ด็อก', category: 'snack', menu: [{ name: 'คอร์นด็อกชีส', price: 35 }] },
+            { id: 26, name: 'กัสโมส ข้าวไก่อบ ไก่ราซอส', category: 'rice', menu: [{ name: 'ข้าวไก่อบ', price: 45 }, { name: 'ข้าวไก่ราซอส', price: 45 }] },
+            { id: 27, name: 'ลูกชิ้นอร่อยจัง', category: 'snack', menu: [{ name: 'ลูกชิ้นปิ้ง', price: 10 }, { name: 'ลูกชิ้นทอด', price: 10 }] },
+            { id: 28, name: 'ธนะสิทธ์ โจ๊ก ข้าวต้ม ต้มเลือดหมู', category: 'rice', menu: [{ name: 'โจ๊กหมู', price: 35 }, { name: 'ต้มเลือดหมู', price: 40 }] },
+            { id: 29, name: 'อุษา ข้าวขาหมู ข้าวหมูแดง', category: 'rice', menu: [{ name: 'ข้าวขาหมู', price: 50 }, { name: 'ข้าวหมูแดงหมูกรอบ', price: 50 }] },
+            { id: 30, name: 'นิจวิภา ไอศกรีม', category: 'snack', menu: [{ name: 'ไอศกรีมกะทิ', price: 20 }] },
+            { id: 31, name: 'ฟุตบอลไข่ข้น', category: 'rice', menu: [{ name: 'ข้าวไข่ข้น', price: 40 }] },
+            { id: 32, name: 'ไก่ย่างห้าดาว', category: 'snack', menu: [{ name: 'ไก่ย่าง', price: 25 }, { name: 'ไก่จ๊อ', price: 25 }] }
         ];
-        const getOrders = id => id === 2 ? [{ id: 'A-001', studentName: 'ด.ช. สมชาย เรียนดี', items: [{ name: 'ก๋วยเตี๋ยวไก่', qty: 1, price: 30 }], total: 30, status: 'new', time: '11:32', note: '' }] : [];
+
+        const IMG_URLS = {
+            drink: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?auto=format&fit=crop&q=80&w=300',
+            noodle: 'https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=300',
+            rice: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=300',
+            fruit: 'https://images.unsplash.com/photo-1502741224143-90386d7f8c82?auto=format&fit=crop&q=80&w=300',
+            snack: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&q=80&w=300'
+        };
 
         const statusCfg = {
             new: { label: 'ออเดอร์ใหม่', bg: 'bg-red-50', border: 'border-red-200', dot: 'bg-red-500', text: 'text-red-700' },
@@ -176,16 +207,16 @@
 
         function App() {
             const [loggedIn, setLoggedIn] = useState(false);
-            const [shopId, setShopId] = useState(null);
+            const [shopInfo, setShopInfo] = useState(null);
             const [tab, setTab] = useState('dashboard');
             const [orders, setOrders] = useState([]);
-            const [menu, setMenu] = useState(initMenu);
+            const [menu, setMenu] = useState([]);
             const [orderFilter, setOrderFilter] = useState('all');
             const [modal, setModal] = useState(null); // {mode:'add'|'edit', item:{...}}
 
-            const shopName = shopNames[shopId] || 'ร้านค้า';
-            const shopCode = `S-${String(shopId).padStart(3, '0')}`;
-            const shopZone = shopId <= 11 ? 'โซน A' : shopId <= 22 ? 'โซน B' : 'โซน C';
+            const shopName = shopInfo ? shopInfo.name : 'ร้านค้า';
+            const shopCode = shopInfo ? `S-${String(shopInfo.id).padStart(3, '0')}` : '';
+            const shopZone = shopInfo ? (shopInfo.id <= 11 ? 'โซน A' : shopInfo.id <= 22 ? 'โซน B' : 'โซน C') : '';
 
             const byStatus = s => orders.filter(o => o.status === s);
             const completed = byStatus('completed');
@@ -194,6 +225,38 @@
             const revenue = completed.reduce((s, o) => s + o.total, 0);
             const totalSold = completed.reduce((s, o) => s + o.items.reduce((a, i) => a + i.qty, 0), 0);
             const filtered = orderFilter === 'all' ? orders.filter(o => o.status !== 'completed') : byStatus(orderFilter);
+
+            const handleLogin = (id) => {
+                const shop = SHOPS_DATA.find(s => s.id === id);
+                if (shop) {
+                    setShopInfo(shop);
+                    const initialMenu = shop.menu.map((m, i) => ({
+                        ...m,
+                        id: i + 1,
+                        image: IMG_URLS[shop.category] || IMG_URLS.rice,
+                        available: true,
+                        sold: Math.floor(Math.random() * 50) + 10
+                    }));
+                    setMenu(initialMenu);
+                    
+                    // Mock some orders for specific shops
+                    if (id === 1 || id === 2) {
+                        setOrders([{ 
+                            id: 'A-001', 
+                            studentName: 'ด.ช. สมชาย เรียนดี', 
+                            items: [{ name: initialMenu[0].name, qty: 1, price: initialMenu[0].price }], 
+                            total: initialMenu[0].price, 
+                            status: 'new', 
+                            time: '11:32', 
+                            note: 'ขอร้อนๆ' 
+                        }]);
+                    } else {
+                        setOrders([]);
+                    }
+                    
+                    setLoggedIn(true);
+                }
+            };
 
             const doOrder = (id, st) => {
                 if (st === 'cancelled') { setOrders(p => p.filter(o => o.id !== id)); return; }
@@ -204,7 +267,7 @@
                 if (!modal) return;
                 const { mode, item } = modal;
                 if (!item.name || !item.price) return alert('กรุณากรอกข้อมูลให้ครบ');
-                if (mode === 'add') setMenu(p => [...p, { ...item, id: Date.now(), image: IMG + '1596450519634-c941d24a9058?auto=format&fit=crop&q=80&w=300', available: true, sold: 0 }]);
+                if (mode === 'add') setMenu(p => [...p, { ...item, id: Date.now(), image: IMG_URLS[shopInfo.category], available: true, sold: 0 }]);
                 else setMenu(p => p.map(m => m.id === item.id ? item : m));
                 setModal(null);
             };
@@ -219,9 +282,9 @@
                             <div className="flex justify-center mb-4"><div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/30"><Store size={32} className="text-white" /></div></div>
                             <h1 className="text-2xl font-bold text-white text-center mb-1">ระบบร้านค้า</h1>
                             <p className="text-amber-200/70 text-center mb-8 text-sm">Horwang School Canteen — Shop Panel</p>
-                            <LoginForm onLogin={n => { setShopId(n); setOrders(getOrders(n)); setMenu(initMenu); setLoggedIn(true); }} />
+                            <LoginForm onLogin={handleLogin} />
                         </div>
-                        <p className="absolute bottom-6 text-white/30 text-xs">© 2026 Horwang Digital Canteen © ZONY</p>
+                        <p className="absolute bottom-6 text-white/30 text-xs">© 2026 Horwang Digital Canteen • Developed by Antigravity</p>
                     </div>
                 );
             }
@@ -264,7 +327,6 @@
                                         <div className="bg-white rounded-xl p-6 text-center text-gray-400 text-sm border border-dashed border-gray-200">ไม่มีออเดอร์</div>
                                     )}
                                 </div>
-
                             </div>
                         )}
 
